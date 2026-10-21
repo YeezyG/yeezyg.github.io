@@ -216,23 +216,17 @@ h1 {
   border-radius: 20px;
   box-shadow: var(--shadow);
   cursor: pointer;
-  transform: translateY(0);
+  transform: translate3d(0, 0, 0);
   transition:
-    transform 0.65s cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.7s cubic-bezier(0.16, 1, 0.3, 1),
     border-color 0.5s ease;
 }
 
 .tool-card:hover {
-  transform: translateY(-3px);
+  transform: translate3d(0, -10px, 0);
   border-color: #e4d2f5;
-  box-shadow: 0 18px 40px rgba(145, 71, 255, 0.14);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tool-card {
-    transition: none;
-  }
+  box-shadow: 0 22px 44px rgba(145, 71, 255, 0.16);
 }
 
 .tool-icon {
@@ -327,7 +321,7 @@ h1 {
 }
 
 .direction-wrap {
-  margin-top: 16px;
+  margin-top: 18px;
 }
 
 .direction-wrap[hidden] {
@@ -337,11 +331,44 @@ h1 {
 .direction {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 4px;
+  width: 100%;
+  padding: 4px;
+  background: #f4eef8;
+  border-radius: 999px;
 }
 
-.direction .kind {
+.side {
   width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #222;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.side:hover {
+  background: #fff;
+}
+
+.side[aria-checked="true"],
+.side[aria-checked="true"]:hover {
+  background: var(--purple);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(145, 71, 255, 0.28);
+}
+
+.side:focus-visible {
+  outline: 3px solid var(--purple);
+  outline-offset: 2px;
 }
 
 #buy-block {
