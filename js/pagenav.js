@@ -141,6 +141,12 @@
 		handleClick: function(e) {
 			var self = this;
 			var $link = $(e.currentTarget);
+			var href = $link.attr('href') || '';
+
+			if (href.charAt(0) !== '#') {
+				return;
+			}
+
 			var $parent = $link.parent();
 			var newLoc = '#' + self.getHash($link);
 

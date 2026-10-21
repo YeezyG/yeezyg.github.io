@@ -62,6 +62,9 @@
 
 		/* vars */
 		var id = $(this).attr('href');
+		if (!id || id.charAt(0) !== '#') {
+			return true;
+		}
 		var h = parseFloat($(id).offset().top);
 		var card_item = $(id);
 		var menu_items = $('.main-menu li');
