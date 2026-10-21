@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <title>工具箱 · 椰子糕</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="椰子糕的工具箱。做T盈亏可以直接用，其余小工具还在准备。">
+  <meta name="description" content="椰子糕的工具箱。做T盈亏计算器。">
   <link rel="shortcut icon" href="../images/favicon.png" type="image/x-icon">
   <link rel="icon" href="../images/favicon.png" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css?family=Poppins:600,700|Work+Sans:400,500,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Poppins:500,600,700|Work+Sans:400,500,600&display=swap" rel="stylesheet">
   <link href="tools.css" rel="stylesheet">
 </head>
 <body>
-  <a class="skip-link" href="#tools">跳到工具列表</a>
+  <a class="skip-link" href="#tools">跳到工具</a>
 
   <header class="site-header">
     <a class="brand" href="../index.html">
@@ -26,137 +26,22 @@
   <main class="page">
     <p class="eyebrow">TOOLS</p>
     <h1>工具箱</h1>
-    <p class="lede">做T盈亏可以直接用。其余几项还只是占位。</p>
+    <p class="lede">按写死的费率，算一笔做T扣完费用后赚多少。</p>
 
     <ul class="tool-grid" id="tools">
       <li>
         <a class="tool-card" href="t-trade.html">
           <span class="tool-icon" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4v3"/><path d="M8 14v6"/><rect x="5.5" y="7" width="5" height="7" rx="0.6"/><path d="M16 3v5"/><path d="M16 16v5"/><rect x="13.5" y="8" width="5" height="8" rx="0.6"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16l5-5 3.5 3.5L20 7"/><path d="M14 7h6v6"/></svg>
           </span>
           <h2>做T盈亏</h2>
-          <p>填买点和卖点，按写死的费率算扣费后赚多少。</p>
-          <span class="badge badge-live">可用</span>
+          <p>填买入价格和数量，算出保本卖出价。再填卖出价，就知道这笔赚还是亏。</p>
+          <span class="badge">打开</span>
         </a>
-      </li>
-      <li>
-        <button class="tool-card" type="button" data-tool="JSON 格式化">
-          <span class="tool-icon" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6H5a2 2 0 0 0-2 2v2a2 2 0 0 1-2 2 2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h3"/><path d="M16 6h3a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2 2 2 0 0 0-2 2v2a2 2 0 0 1-2 2h-3"/></svg>
-          </span>
-          <h2>JSON 格式化</h2>
-          <p>把 JSON 排整齐，并检查是不是合法。</p>
-          <span class="badge">筹备中</span>
-        </button>
-      </li>
-      <li>
-        <button class="tool-card" type="button" data-tool="时间戳转换">
-          <span class="tool-icon" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>
-          </span>
-          <h2>时间戳转换</h2>
-          <p>Unix 时间戳和日期互相转换。</p>
-          <span class="badge">筹备中</span>
-        </button>
-      </li>
-      <li>
-        <button class="tool-card" type="button" data-tool="Base64">
-          <span class="tool-icon" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 15V9l2.5 3L13 9v6"/><path d="M16 9v6"/></svg>
-          </span>
-          <h2>Base64</h2>
-          <p>文本的编码和解码。</p>
-          <span class="badge">筹备中</span>
-        </button>
-      </li>
-      <li>
-        <button class="tool-card" type="button" data-tool="颜色转换">
-          <span class="tool-icon" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16"/></svg>
-          </span>
-          <h2>颜色转换</h2>
-          <p>HEX 和 RGB 之间互转。</p>
-          <span class="badge">筹备中</span>
-        </button>
-      </li>
-      <li>
-        <button class="tool-card" type="button" data-tool="字数统计">
-          <span class="tool-icon" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14"/><path d="M5 12h14"/><path d="M5 18h8"/></svg>
-          </span>
-          <h2>字数统计</h2>
-          <p>统计字数、行数和字符数。</p>
-          <span class="badge">筹备中</span>
-        </button>
-      </li>
-      <li>
-        <button class="tool-card" type="button" data-tool="正则测试">
-          <span class="tool-icon" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
-          </span>
-          <h2>正则测试</h2>
-          <p>写一条正则，看看匹配结果。</p>
-          <span class="badge">筹备中</span>
-        </button>
       </li>
     </ul>
   </main>
 
   <footer class="site-footer">椰子糕 · 工具箱</footer>
-
-  <div class="dialog" id="soon-dialog" hidden>
-    <div class="dialog-backdrop" data-close></div>
-    <div class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="soon-title">
-      <p class="dialog-kicker">筹备中</p>
-      <h2 id="soon-title">这个工具还在准备</h2>
-      <p id="soon-text">路径已经留好，之后会换成真正能用的版本。</p>
-      <button class="dialog-close" type="button" data-close>知道了</button>
-    </div>
-  </div>
-
-  <script>
-    (function () {
-      var dialog = document.getElementById("soon-dialog");
-      var title = document.getElementById("soon-title");
-      var text = document.getElementById("soon-text");
-      var closeButton = dialog.querySelector(".dialog-close");
-      var lastFocus = null;
-
-      function openDialog(name) {
-        lastFocus = document.activeElement;
-        title.textContent = name;
-        text.textContent = "「" + name + "」还在准备。这个位置先留着，之后再换成能用的工具。";
-        dialog.hidden = false;
-        closeButton.focus();
-      }
-
-      function closeDialog() {
-        dialog.hidden = true;
-        if (lastFocus && lastFocus.focus) {
-          lastFocus.focus();
-        }
-      }
-
-      document.getElementById("tools").addEventListener("click", function (event) {
-        var card = event.target.closest(".tool-card");
-        if (!card || card.tagName === "A") {
-          return;
-        }
-        openDialog(card.getAttribute("data-tool"));
-      });
-
-      dialog.addEventListener("click", function (event) {
-        if (event.target.hasAttribute("data-close")) {
-          closeDialog();
-        }
-      });
-
-      document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape" && !dialog.hidden) {
-          closeDialog();
-        }
-      });
-    })();
-  </script>
 </body>
 </html>

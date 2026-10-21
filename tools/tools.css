@@ -1,13 +1,15 @@
 :root {
-  --ink: #211c27;
-  --muted: #6d6573;
+  --ink: #222222;
+  --muted: #777777;
   --purple: #9147ff;
+  --purple-deep: #7927f5;
   --purple-ink: #5b22b8;
   --blush: #f8e9e9;
   --pink: #fc6183;
   --paper: #ffffff;
-  --line: #efe4ee;
-  --shadow: 0 14px 40px rgba(70, 24, 90, 0.08);
+  --line: #e5e5e5;
+  --line-strong: #d9d9d9;
+  --shadow: 0 18px 50px rgba(40, 10, 80, 0.18);
 }
 
 * {
@@ -23,10 +25,7 @@ body {
   min-height: 100vh;
   color: var(--ink);
   font-family: "Work Sans", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
-  background:
-    radial-gradient(820px 380px at 0% -8%, rgba(145, 71, 255, 0.16), transparent 62%),
-    radial-gradient(640px 320px at 100% 0%, rgba(252, 97, 131, 0.14), transparent 58%),
-    #fbf8fb;
+  background-image: linear-gradient(110deg, rgb(145, 71, 255) 0%, rgb(121, 39, 245) 100%);
 }
 
 body::before,
@@ -39,7 +38,7 @@ body::after {
   background-size: contain;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.55;
+  opacity: 0.9;
 }
 
 body::before {
@@ -110,7 +109,7 @@ a.tool-card {
   display: flex;
   align-items: center;
   gap: 12px;
-  color: var(--ink);
+  color: #fff;
   text-decoration: none;
   font-family: "Poppins", "PingFang SC", sans-serif;
   font-weight: 600;
@@ -130,33 +129,33 @@ a.tool-card {
   font-weight: 500;
   font-size: 12px;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .back-link {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: 0 18px;
-  border-radius: 999px;
-  background: #fff;
-  color: var(--ink);
+  padding: 0 22px;
+  border-radius: 40px;
+  background: transparent;
+  color: #fff;
   text-decoration: none;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 255, 255, 0.75);
   font-size: 14px;
   font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
 .back-link:hover {
-  background: var(--purple);
-  border-color: var(--purple);
-  color: #fff;
+  background: #fff;
+  border-color: #fff;
+  color: var(--purple);
 }
 
 .back-link:focus-visible,
-.tool-card:focus-visible,
-.dialog-close:focus-visible {
-  outline: 3px solid var(--purple);
+.tool-card:focus-visible {
+  outline: 3px solid #fff;
   outline-offset: 3px;
 }
 
@@ -168,7 +167,7 @@ a.tool-card {
 
 .eyebrow {
   margin: 0 0 8px;
-  color: var(--purple-ink);
+  color: #fff;
   font-family: "Poppins", sans-serif;
   font-size: 13px;
   font-weight: 600;
@@ -177,6 +176,7 @@ a.tool-card {
 
 h1 {
   margin: 0;
+  color: #fff;
   font-family: "Poppins", "PingFang SC", sans-serif;
   font-size: clamp(36px, 5vw, 56px);
   line-height: 1.15;
@@ -186,14 +186,14 @@ h1 {
 .lede {
   max-width: 38em;
   margin: 14px 0 0;
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.92);
   font-size: 17px;
   line-height: 1.7;
 }
 
 .tool-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 520px);
   gap: 18px;
   margin: 36px 0 0;
   padding: 0;
@@ -211,16 +211,16 @@ h1 {
   color: inherit;
   font: inherit;
   background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 20px;
+  border: 0;
+  border-radius: 7px;
   box-shadow: var(--shadow);
   cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .tool-card:hover {
   transform: translateY(-3px);
-  border-color: #e4d2f5;
-  box-shadow: 0 18px 40px rgba(145, 71, 255, 0.14);
+  box-shadow: 0 22px 50px rgba(40, 10, 80, 0.28);
 }
 
 .tool-icon {
@@ -229,7 +229,7 @@ h1 {
   width: 46px;
   height: 46px;
   margin-bottom: 18px;
-  border-radius: 14px;
+  border-radius: 50%;
   background: var(--blush);
   color: var(--purple);
 }
@@ -252,92 +252,23 @@ h1 {
 .badge {
   margin-top: auto;
   padding-top: 18px;
-  color: var(--purple-ink);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-}
-
-.badge-live {
-  color: #0f6b3c;
+  color: var(--purple);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
 .site-footer {
   max-width: 1080px;
   margin: 0 auto;
   padding: 0 24px 36px;
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 13px;
-}
-
-.dialog[hidden] {
-  display: none;
-}
-
-.dialog {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-}
-
-.dialog-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(33, 28, 39, 0.45);
-}
-
-.dialog-panel {
-  position: relative;
-  width: min(440px, 100%);
-  padding: 28px 24px 22px;
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 24px 70px rgba(33, 28, 39, 0.22);
-}
-
-.dialog-kicker {
-  margin: 0;
-  color: var(--pink);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-}
-
-.dialog-panel h2 {
-  margin: 8px 0 0;
-  font-family: "Poppins", "PingFang SC", sans-serif;
-  font-size: 26px;
-}
-
-.dialog-panel p {
-  margin: 10px 0 0;
-  color: var(--muted);
-  line-height: 1.7;
-}
-
-.dialog-close {
-  margin-top: 22px;
-  min-height: 44px;
-  padding: 0 22px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--purple);
-  color: #fff;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.dialog-close:hover {
-  background: #222;
 }
 
 @media (max-width: 860px) {
   .tool-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -354,7 +285,7 @@ h1 {
 
   body::before,
   body::after {
-    opacity: 0.28;
+    opacity: 0.45;
   }
 }
 
@@ -370,10 +301,10 @@ h1 {
 .panel {
   min-width: 0;
   max-width: 100%;
-  padding: 22px;
+  padding: 28px 26px;
   background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 20px;
+  border: 0;
+  border-radius: 7px;
   box-shadow: var(--shadow);
 }
 
@@ -387,20 +318,19 @@ h1 {
   min-width: 0;
   min-height: 44px;
   padding: 0 8px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  border-radius: 40px;
   background: #fff;
-  color: var(--ink);
+  color: #222;
   font: inherit;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: 0.5px;
   cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-.kind:hover {
-  border-color: #e4d2f5;
-}
-
+.kind:hover,
 .kind[aria-checked="true"] {
   background: var(--purple);
   border-color: var(--purple);
@@ -408,6 +338,7 @@ h1 {
 }
 
 .kind:focus-visible,
+.btn-solid:focus-visible,
 .btn-ghost:focus-visible,
 .control input:focus-visible,
 .rates summary:focus-visible {
@@ -440,13 +371,13 @@ h1 {
 }
 
 .section-label {
-  margin: 0;
+  margin: 4px 0 0;
   padding: 0;
-  color: var(--purple-ink);
+  color: #222;
   font-family: "Poppins", "PingFang SC", sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 0;
 }
 
 .field-grid {
@@ -457,24 +388,26 @@ h1 {
 
 .field label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  color: #222;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .control {
   display: flex;
   align-items: center;
-  min-height: 48px;
-  padding: 0 14px;
+  min-height: 50px;
+  padding: 0 22px;
   background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  border: 1px solid #e5e5e5;
+  border-radius: 25px;
+  transition: border-color 0.3s ease;
 }
 
 .control:focus-within {
-  border-color: var(--purple);
-  box-shadow: 0 0 0 4px rgba(145, 71, 255, 0.12);
+  border-color: #222;
+  box-shadow: none;
 }
 
 .control input {
@@ -483,10 +416,14 @@ h1 {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--ink);
+  color: #222;
   font: inherit;
   font-size: 16px;
   font-variant-numeric: tabular-nums;
+}
+
+.control input::placeholder {
+  color: #888888;
 }
 
 .control input:focus {
@@ -514,22 +451,40 @@ h1 {
   margin-top: 16px;
 }
 
+.btn-solid,
 .btn-ghost {
-  min-height: 44px;
-  padding: 0 16px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: #fff;
-  color: var(--ink);
+  min-height: 48px;
+  padding: 0 28px;
+  border-radius: 40px;
   font: inherit;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: 0.5px;
   cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.btn-solid {
+  border: 0;
+  background: var(--purple);
+  color: #fff;
+}
+
+.btn-solid:hover {
+  background: #222;
+  color: #fff;
+}
+
+.btn-ghost {
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: #222;
 }
 
 .btn-ghost:hover {
+  background: var(--purple);
   border-color: var(--purple);
-  color: var(--purple-ink);
+  color: #fff;
 }
 
 .rates {
@@ -544,8 +499,9 @@ h1 {
   display: flex;
   align-items: center;
   width: fit-content;
-  color: var(--purple-ink);
-  font-weight: 600;
+  color: var(--purple);
+  font-weight: 500;
+  letter-spacing: 0.5px;
   cursor: pointer;
 }
 
@@ -582,11 +538,11 @@ h1 {
 
 .result-kicker {
   margin: 0;
-  color: var(--purple-ink);
+  color: var(--purple);
   font-family: "Poppins", "PingFang SC", sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
 }
 
 .result-value {
