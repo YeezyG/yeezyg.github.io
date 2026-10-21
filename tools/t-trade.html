@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>做T盈亏 · 工具箱 · 椰子糕</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="按写死的佣金、过户费和印花税，用买入价格和数量算保本卖出价，或用卖出价算做T盈亏。">
+  <meta name="description" content="按写死的佣金、过户费和印花税，做多算保本卖出价，做空算要跌多少买回才保本。">
   <link rel="shortcut icon" href="../images/favicon.png" type="image/x-icon">
   <link rel="icon" href="../images/favicon.png" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,7 +26,7 @@
   <main class="page" id="calculator">
     <p class="eyebrow">T TRADE</p>
     <h1>做T盈亏</h1>
-    <p class="lede">手续费按账户写死。填买入价格和数量，算出保本卖出价，卖出数量按买入数量。再填卖出价，就知道扣完费用是赚是亏。</p>
+    <p class="lede">手续费按账户写死。做多先填买点，算出保本卖出价。做空先填卖点，算出要跌到多少买回才保本。</p>
 
     <div class="calc-layout">
       <form class="panel" id="calc-form" autocomplete="off">
@@ -42,26 +42,37 @@
         </div>
         <p class="rate-note" id="rate-note"></p>
 
-        <fieldset class="fields" id="trade-fields">
+        <div class="direction-wrap" id="direction-wrap">
+          <div class="direction" role="radiogroup" aria-label="方向">
+            <button class="kind" type="button" role="radio" data-side="long" aria-checked="true">做多</button>
+            <button class="kind" type="button" role="radio" data-side="short" aria-checked="false">做空</button>
+          </div>
+          <p class="hint" id="side-hint">先买后卖。填买点，算出要卖到多少才保本。</p>
+        </div>
+
+        <fieldset class="fields" id="trade-fields" data-side="long">
           <legend class="sr-only">买卖价格和数量</legend>
-          <p class="section-label">买点</p>
+          <div id="buy-block">
+          <p class="section-label" id="buy-label">买点</p>
           <div class="field-grid">
             <div class="field">
-              <label for="buy-price">买入价格</label>
+              <label for="buy-price" id="buy-price-label">买入价格</label>
               <div class="control">
                 <input id="buy-price" name="buyPrice" inputmode="decimal" placeholder="0.00" spellcheck="false">
                 <span class="suffix" data-price-unit>元</span>
               </div>
             </div>
             <div class="field">
-              <label for="buy-qty">买入数量</label>
+              <label for="buy-qty" id="buy-qty-label">买入数量</label>
               <div class="control">
                 <input id="buy-qty" name="buyQty" inputmode="numeric" placeholder="0" spellcheck="false">
                 <span class="suffix" data-qty-unit>股</span>
               </div>
             </div>
           </div>
+          </div>
 
+          <div id="sell-block">
           <p class="section-label">卖点</p>
           <div class="field-grid">
             <div class="field">
@@ -79,6 +90,7 @@
               </div>
             </div>
           </div>
+          </div>
 
           <div class="field" id="margin-field" hidden>
             <label for="margin-days">计息天数</label>
@@ -86,7 +98,7 @@
               <input id="margin-days" name="marginDays" inputmode="numeric" value="1" spellcheck="false">
               <span class="suffix">天</span>
             </div>
-            <p class="hint">当天买进卖出，一般填 1。利息按买入金额的年化 4.5%，一年按 360 天。</p>
+            <p class="hint" id="margin-hint">当天买进卖出，一般填 1。利息按买入金额的年化 4.5%，一年按 360 天。</p>
           </div>
         </fieldset>
 
@@ -142,8 +154,17 @@
 
       <aside class="panel result-card" id="result" data-tone="muted" aria-live="polite">
         <p class="result-kicker" id="hero-kicker">做T盈亏</p>
-        <p class="result-value" id="hero-value">—</p>
-        <p class="result-unit" id="hero-unit" hidden></p>
+        <div class="result-head">
+          <div class="result-quote">
+            <p class="result-value" id="hero-value">—</p>
+            <p class="result-unit" id="hero-unit" hidden></p>
+          </div>
+          <p class="result-move" id="hero-move" hidden>
+            <span class="result-move-label" id="hero-move-label">涨幅</span>
+            <span class="result-move-amount" id="hero-move-amount"></span>
+            <span class="result-move-ratio" id="hero-move-ratio"></span>
+          </p>
+        </div>
         <p class="result-judge" id="hero-judge">先填买点</p>
         <p class="result-sub" id="hero-sub"></p>
         <p class="caption" id="caption" hidden></p>
@@ -160,9 +181,11 @@
   <script>
     (function () {
       var kind = "stock";
+      var side = "long";
       var form = document.getElementById("calc-form");
       var resultCard = document.getElementById("result");
-      var kinds = Array.prototype.slice.call(document.querySelectorAll(".kind"));
+      var kinds = Array.prototype.slice.call(document.querySelectorAll(".kinds .kind"));
+      var sides = Array.prototype.slice.call(document.querySelectorAll("[data-side]"));
 
       function byId(id) {
         return document.getElementById(id);
@@ -177,6 +200,7 @@
       function currentInput() {
         return {
           kind: kind,
+          side: side,
           buyPrice: byId("buy-price").value,
           buyQty: byId("buy-qty").value,
           sellPrice: byId("sell-price").value,
@@ -221,6 +245,17 @@
         heroValue.hidden = !heroValue.textContent;
         byId("hero-unit").textContent = result.unit || "";
         byId("hero-unit").hidden = !result.unit || heroValue.hidden;
+        var moveEl = byId("hero-move");
+        if (result.move && heroValue.textContent) {
+          moveEl.hidden = false;
+          moveEl.dataset.dir = result.move.dir;
+          byId("hero-move-label").textContent = "涨幅";
+          byId("hero-move-amount").textContent = result.move.amountText;
+          byId("hero-move-ratio").textContent = result.move.ratioText;
+        } else {
+          moveEl.hidden = true;
+          delete moveEl.dataset.dir;
+        }
         byId("hero-judge").textContent = result.judge || "";
         byId("hero-sub").textContent = result.sub || "";
         byId("hero-sub").hidden = !result.sub;
@@ -257,7 +292,35 @@
         byId("trade-fields").hidden = kind === "repo";
         byId("repo-fields").hidden = kind !== "repo";
         byId("margin-field").hidden = kind !== "margin";
+        byId("direction-wrap").hidden = kind === "repo";
         syncUnits();
+        update();
+      }
+
+      function setSide(next) {
+        if (next !== "long" && next !== "short") {
+          return;
+        }
+        side = next;
+        var short = side === "short";
+        sides.forEach(function (button) {
+          var on = button.getAttribute("data-side") === side;
+          button.setAttribute("aria-checked", on ? "true" : "false");
+        });
+        byId("trade-fields").setAttribute("data-side", side);
+        byId("side-hint").textContent = short
+          ? "先卖后买。填卖点，算出要跌到多少买回才保本。"
+          : "先买后卖。填买点，算出要卖到多少才保本。";
+        byId("buy-label").textContent = short ? "买回" : "买点";
+        byId("buy-price-label").textContent = short ? "买回价格" : "买入价格";
+        byId("buy-qty-label").textContent = short ? "买回数量" : "买入数量";
+        byId("buy-price").placeholder = short ? "不填则只算保本买回价" : "0.00";
+        byId("buy-qty").placeholder = short ? "默认同卖出" : "0";
+        byId("sell-price").placeholder = short ? "0.00" : "不填则只算保本价";
+        byId("sell-qty").placeholder = short ? "0" : "默认同买入";
+        byId("margin-hint").textContent = short
+          ? "当天卖出再买回，一般填 1。利息按卖出金额的年化 4.5%，一年按 360 天。没用融券就选股票。"
+          : "当天买进卖出，一般填 1。利息按买入金额的年化 4.5%，一年按 360 天。";
         update();
       }
 
@@ -267,6 +330,14 @@
           byId("repo-amount").value = sample.amount;
           byId("repo-rate").value = sample.rate;
           byId("repo-days").value = sample.days;
+        } else if (side === "short") {
+          byId("sell-price").value = sample.sellPrice || sample.buyPrice;
+          byId("sell-qty").value = sample.sellQty || sample.buyQty;
+          byId("buy-price").value = "";
+          byId("buy-qty").value = "";
+          if (sample.days) {
+            byId("margin-days").value = sample.days;
+          }
         } else {
           byId("buy-price").value = sample.buyPrice;
           byId("buy-qty").value = sample.buyQty;
@@ -307,6 +378,26 @@
         });
       });
 
+      sides.forEach(function (button) {
+        button.addEventListener("click", function () {
+          setSide(button.getAttribute("data-side"));
+        });
+      });
+
+      document.querySelector(".direction").addEventListener("keydown", function (event) {
+        var keys = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"];
+        if (keys.indexOf(event.key) === -1) {
+          return;
+        }
+        event.preventDefault();
+        var next = side === "long" ? "short" : "long";
+        var button = document.querySelector('[data-side="' + next + '"]');
+        if (button) {
+          button.focus();
+        }
+        setSide(next);
+      });
+
       document.querySelector(".kinds").addEventListener("keydown", function (event) {
         var keys = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"];
         var index = keys.indexOf(event.key);
@@ -336,6 +427,9 @@
         setKind(params.get("kind"));
       } else {
         setKind("stock");
+      }
+      if (params.get("side") === "short") {
+        setSide("short");
       }
       if (params.get("example") === "1") {
         fillExample();

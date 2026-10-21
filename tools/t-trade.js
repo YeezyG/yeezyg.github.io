@@ -192,6 +192,30 @@
     return group(qty);
   }
 
+  function formatRatio(part, whole) {
+    var hundredths = divRound(BigInt(part) * 10000n, BigInt(whole));
+    if (hundredths === null) {
+      return "";
+    }
+    var v = Math.abs(hundredths);
+    return (hundredths < 0 ? "−" : "") + group(Math.floor(v / 100)) + "." + String(v % 100).padStart(2, "0") + "%";
+  }
+
+  function priceMove(rule, fromTiny, toTiny) {
+    var delta = toTiny - fromTiny;
+    var abs = Math.abs(delta);
+    var amount = formatPriceTiny(abs);
+    var ratio = abs === 0 || !fromTiny ? "0.00%" : formatRatio(abs, fromTiny);
+    var sign = delta > 0 ? "+" : delta < 0 ? "−" : "";
+    var word = delta > 0 ? "涨" : delta < 0 ? "跌" : "平";
+    return {
+      dir: delta > 0 ? "up" : delta < 0 ? "down" : "flat",
+      amountText: sign + amount + " " + rule.currency,
+      ratioText: (sign || "") + ratio,
+      phrase: word + " " + amount + " " + rule.currency + "，" + (sign || "") + ratio
+    };
+  }
+
   function formatPercent(units) {
     var whole = Math.floor(units / 10000);
     var frac = String(units % 10000).padStart(4, "0").replace(/0+$/, "");
@@ -299,7 +323,7 @@
     return fail(rule, "金额太大了，算不了");
   }
 
-  function buyLeg(rule, priceTiny, qty, days) {
+  function buyLeg(rule, priceTiny, qty, days, chargeInterest) {
     var gross = amountFen(priceTiny, qty);
     if (gross === null) {
       return null;
@@ -310,7 +334,7 @@
       return null;
     }
     var interest = 0;
-    if (rule.interest) {
+    if (rule.interest && chargeInterest !== false) {
       interest = divRound(BigInt(gross) * 45n * BigInt(days), 360000);
       if (interest === null) {
         return null;
@@ -325,7 +349,7 @@
     };
   }
 
-  function sellLeg(rule, priceTiny, qty) {
+  function sellLeg(rule, priceTiny, qty, days, chargeInterest) {
     var gross = amountFen(priceTiny, qty);
     if (gross === null) {
       return null;
@@ -336,17 +360,25 @@
     if (!comm || !transfer || !stamp) {
       return null;
     }
+    var interest = 0;
+    if (rule.interest && chargeInterest) {
+      interest = divRound(BigInt(gross) * 45n * BigInt(days), 360000);
+      if (interest === null) {
+        return null;
+      }
+    }
     return {
       amountFen: gross,
       commFen: comm.fen,
       commHitMin: comm.hitMin,
       transferFen: transfer.fen,
-      stampFen: stamp.fen
+      stampFen: stamp.fen,
+      interestFen: interest
     };
   }
 
   function settle(rule, buy, sell) {
-    var feeFen = buy.commFen + buy.transferFen + buy.interestFen + sell.commFen + sell.transferFen + sell.stampFen;
+    var feeFen = buy.commFen + buy.transferFen + (buy.interestFen || 0) + sell.commFen + sell.transferFen + sell.stampFen + (sell.interestFen || 0);
     var grossFen = sell.amountFen - buy.amountFen;
     return {
       buy: buy,
@@ -485,7 +517,11 @@
       );
     }
     if (rule.id === "margin") {
-      notes.push("利息按融资买入金额计算。这笔如果没用融资，品种选股票。");
+      if (settled.interestOn === "sell") {
+        notes.push("利息按融券卖出金额计算。这笔如果没用融券，品种选股票。");
+      } else {
+        notes.push("利息按融资买入金额计算。这笔如果没用融资，品种选股票。");
+      }
     }
     return notes;
   }
@@ -507,7 +543,11 @@
       rows.push(moneyRow("印花税", settled.sell.stampFen, false, unit));
     }
     if (rule.interest) {
-      rows.push(moneyRow("融资利息", settled.buy.interestFen, false, unit));
+      if (settled.interestOn === "sell") {
+        rows.push(moneyRow("融券利息", settled.sell.interestFen || 0, false, unit));
+      } else {
+        rows.push(moneyRow("融资利息", settled.buy.interestFen || 0, false, unit));
+      }
     }
     var total = moneyRow("费用合计", settled.feeFen, false, unit);
     total.strong = true;
@@ -603,6 +643,7 @@
       result.kicker = "保本卖出";
       result.value = formatPriceTiny(breakeven.quotedTiny);
       result.unit = rule.currency;
+      result.move = priceMove(rule, buyPrice.value, breakeven.quotedTiny);
       result.judge = "卖出 " + formatQty(sellQty.value) + " " + rule.qtyUnit;
       if (preview.netFen === 0) {
         result.sub = "卖到这个价格，扣完费用刚好打平。";
@@ -638,7 +679,7 @@
     done.value = formatSigned(settled.netFen);
     done.unit = rule.currency;
     done.judge = judgeOf(settled.netFen);
-    done.sub = "卖出 " + formatQty(sellQty.value) + " " + rule.qtyUnit + "。保本卖出价 " + formatPriceTiny(breakeven.quotedTiny) + " " + rule.currency + "。";
+    done.sub = "卖出 " + formatQty(sellQty.value) + " " + rule.qtyUnit + "。保本卖出价 " + formatPriceTiny(breakeven.quotedTiny) + " " + rule.currency + "，" + priceMove(rule, buyPrice.value, breakeven.quotedTiny).phrase + "。";
     if (sellQtyAssumed) {
       done.notes = ["卖出数量没填，按买入的 " + formatQty(buyQty.value) + " " + rule.qtyUnit + " 计算。"];
     } else {
@@ -649,6 +690,269 @@
     done.netFen = settled.netFen;
     done.breakeven = breakeven;
     done.sellQty = sellQty.value;
+    return done;
+  }
+
+  function estimateBuyTiny(rule, sell, buyQty) {
+    var inflow = sell.amountFen - sell.commFen - sell.transferFen - sell.stampFen - (sell.interestFen || 0);
+    var rc = rule.commission.numer / rule.commission.denom;
+    var rt = rule.transfer ? rule.transfer.numer / rule.transfer.denom : 0;
+    var minFen = rule.commission.minFen || 0;
+    var propDenom = 1 + rc + rt;
+    var minDenom = 1 + rt;
+    if (inflow <= 0 || propDenom <= 0) {
+      return rule.tickTiny;
+    }
+    var bProp = inflow / propDenom;
+    var bMin = (inflow - minFen) / minDenom;
+    var bFen = bProp * rc >= minFen ? bProp : bMin;
+    var tiny = Math.floor((bFen * 100) / buyQty);
+    if (!isFinite(tiny) || tiny < 1) {
+      return rule.tickTiny;
+    }
+    return tiny;
+  }
+
+  function findBuyback(rule, sellPriceTiny, sellQty, buyQty, days) {
+    var sell = sellLeg(rule, sellPriceTiny, sellQty, days, true);
+    if (!sell) {
+      return null;
+    }
+    var tick = rule.tickTiny;
+    var guess = estimateBuyTiny(rule, sell, buyQty);
+    guess = Math.floor(guess / tick) * tick;
+    if (guess < tick) {
+      guess = tick;
+    }
+
+    function at(priceTiny) {
+      var buy = buyLeg(rule, priceTiny, buyQty, days, false);
+      if (!buy) {
+        return null;
+      }
+      return settle(rule, buy, sell);
+    }
+
+    var steps = 0;
+    var probe = at(guess);
+    if (!probe) {
+      return null;
+    }
+    while (probe.netFen < 0 && guess > tick) {
+      guess -= tick;
+      probe = at(guess);
+      steps += 1;
+      if (!probe || steps > 200000) {
+        return null;
+      }
+    }
+    if (probe.netFen < 0) {
+      return {
+        impossible: true,
+        quotedTiny: null,
+        exactTiny: null,
+        netAtQuotedFen: probe.netFen,
+        worseTickTiny: null,
+        worseNetFen: null,
+        settled: probe
+      };
+    }
+    while (steps <= 200000) {
+      var higher = at(guess + tick);
+      if (!higher) {
+        return null;
+      }
+      if (higher.netFen < 0) {
+        break;
+      }
+      guess += tick;
+      probe = higher;
+      steps += 1;
+    }
+    if (steps > 200000) {
+      return null;
+    }
+
+    var exact = guess;
+    var ceil = guess + tick - 1;
+    while (exact < ceil && steps <= 200000) {
+      var next = at(exact + 1);
+      if (!next || next.netFen < 0) {
+        break;
+      }
+      exact += 1;
+      steps += 1;
+    }
+
+    var worse = at(guess + tick);
+    return {
+      impossible: false,
+      quotedTiny: guess,
+      exactTiny: exact,
+      netAtQuotedFen: probe.netFen,
+      worseTickTiny: guess + tick,
+      worseNetFen: worse ? worse.netFen : null,
+      settled: probe
+    };
+  }
+
+  function dropSentence(rule, sellTiny, buyTiny) {
+    var drop = sellTiny - buyTiny;
+    if (drop > 0) {
+      return "要从 " + formatPriceTiny(sellTiny) + " " + rule.currency +
+        " 跌 " + formatPriceTiny(drop) + " " + rule.currency +
+        "，大约 " + formatRatio(drop, sellTiny) + "。";
+    }
+    if (drop === 0) {
+      return "买回价和卖出价相同就能保本。";
+    }
+    return "买回价可以比卖出价高 " + formatPriceTiny(-drop) + " " + rule.currency + " 仍保本。";
+  }
+
+  function quoteShort(rule, input) {
+    var buyPriceBlank = isBlank(input.buyPrice);
+    var buyQtyBlank = isBlank(input.buyQty);
+    var sellPriceBlank = isBlank(input.sellPrice);
+    var sellQtyBlank = isBlank(input.sellQty);
+
+    if (buyPriceBlank && buyQtyBlank && sellPriceBlank && sellQtyBlank) {
+      var empty = baseResult(rule);
+      empty.judge = "先填卖点";
+      empty.sub = "填入卖出价格和数量，算出要跌多少、买回多少才保本。买入数量按卖出数量。再填买回价，就知道这笔赚还是亏。";
+      return empty;
+    }
+    if (sellPriceBlank) {
+      var needPrice = baseResult(rule);
+      needPrice.status = "need";
+      needPrice.judge = "还要填卖出价格";
+      return needPrice;
+    }
+    if (sellQtyBlank) {
+      var needQty = baseResult(rule);
+      needQty.status = "need";
+      needQty.judge = "还要填卖出数量";
+      return needQty;
+    }
+
+    var sellPrice = parseScaled(input.sellPrice, 4, "卖出价格");
+    if (!sellPrice.ok) {
+      return fail(rule, sellPrice.message);
+    }
+    var sellQty = parseQty(input.sellQty);
+    if (!sellQty.ok) {
+      return fail(rule, sellQty.message);
+    }
+
+    var buyQtyAssumed = buyQtyBlank;
+    var buyQty = sellQty;
+    if (!buyQtyBlank) {
+      buyQty = parseQty(input.buyQty);
+      if (!buyQty.ok) {
+        return fail(rule, buyQty.message);
+      }
+    }
+
+    var days = { ok: true, value: 1 };
+    if (rule.interest) {
+      days = parseDays(isBlank(input.days) ? "1" : input.days, "还要填计息天数");
+      if (!days.ok) {
+        return fail(rule, days.message);
+      }
+    }
+
+    var breakeven = findBuyback(rule, sellPrice.value, sellQty.value, buyQty.value, days.value);
+    if (!breakeven) {
+      return tooBig(rule);
+    }
+    if (rule.interest) {
+      breakeven.settled.interestOn = "sell";
+    }
+
+    if (buyPriceBlank) {
+      if (breakeven.impossible) {
+        var stuck = baseResult(rule);
+        stuck.status = "ok";
+        stuck.tone = "loss";
+        stuck.judge = "买到最低价位也不够保本";
+        stuck.sub = "卖出扣完费用之后，剩下的钱盖不住最低价位的买入成本。";
+        return stuck;
+      }
+      var preview = breakeven.settled;
+      var result = baseResult(rule);
+      result.status = "ok";
+      result.tone = "flat";
+      result.kicker = "保本买回";
+      result.value = formatPriceTiny(breakeven.quotedTiny);
+      result.unit = rule.currency;
+      result.move = priceMove(rule, sellPrice.value, breakeven.quotedTiny);
+      result.judge = "买入 " + formatQty(buyQty.value) + " " + rule.qtyUnit;
+      result.sub = dropSentence(rule, sellPrice.value, breakeven.quotedTiny);
+      if (preview.netFen === 0) {
+        result.sub += "买到这个价格，扣完费用刚好打平。";
+      } else {
+        result.sub += "报到这个价位，扣完费用净赚 " + formatYuan(preview.netFen) + " " + rule.currency + "。";
+      }
+      if (breakeven.worseNetFen !== null && breakeven.worseNetFen < 0) {
+        result.sub += "高一个价位 " + formatPriceTiny(breakeven.worseTickTiny) + " " + rule.currency + "会亏 " + formatYuan(breakeven.worseNetFen) + " " + rule.currency + "。";
+      }
+      result.caption = "下面按买回价 " + formatPriceTiny(breakeven.quotedTiny) + " " + rule.currency + " 试算。";
+      result.rows = tradeRows(rule, preview);
+      result.notes = tradeNotes(rule, buyQty.value, sellQty.value, false, preview, {
+        quotedTiny: breakeven.quotedTiny,
+        exactTiny: breakeven.exactTiny
+      });
+      if (buyQtyAssumed) {
+        result.notes.unshift("买入数量没填，按卖出的 " + formatQty(sellQty.value) + " " + rule.qtyUnit + " 计算。");
+      }
+      if (rule.interest) {
+        result.rateNote = "佣金、过户费、印花税与股票相同。融券利息按卖出金额 × 4.5% / 360 × 天数。没用融券就选股票。";
+      }
+      result.netFen = preview.netFen;
+      result.breakeven = breakeven;
+      result.buyQty = buyQty.value;
+      return result;
+    }
+
+    var buyPrice = parseScaled(input.buyPrice, 4, "买入价格");
+    if (!buyPrice.ok) {
+      return fail(rule, buyPrice.message);
+    }
+    var buy = buyLeg(rule, buyPrice.value, buyQty.value, days.value, false);
+    var sell = sellLeg(rule, sellPrice.value, sellQty.value, days.value, true);
+    if (!buy || !sell) {
+      return tooBig(rule);
+    }
+    var settled = settle(rule, buy, sell);
+    if (rule.interest) {
+      settled.interestOn = "sell";
+    }
+    var done = baseResult(rule);
+    done.status = "ok";
+    done.tone = toneOf(settled.netFen);
+    done.kicker = "扣费后";
+    done.value = formatSigned(settled.netFen);
+    done.unit = rule.currency;
+    done.judge = judgeOf(settled.netFen);
+    if (breakeven.impossible) {
+      done.sub = "买入 " + formatQty(buyQty.value) + " " + rule.qtyUnit + "。这个卖出价扣完费用后，没有保本买回价。";
+    } else {
+      done.sub = "买入 " + formatQty(buyQty.value) + " " + rule.qtyUnit + "。保本买回价 " + formatPriceTiny(breakeven.quotedTiny) + " " + rule.currency + "。" + dropSentence(rule, sellPrice.value, breakeven.quotedTiny);
+    }
+    done.notes = [];
+    if (buyQtyAssumed) {
+      done.notes.push("买入数量没填，按卖出的 " + formatQty(sellQty.value) + " " + rule.qtyUnit + " 计算。");
+    }
+    done.notes = done.notes.concat(tradeNotes(rule, buyQty.value, sellQty.value, false, settled, breakeven.impossible ? null : {
+      quotedTiny: breakeven.quotedTiny,
+      exactTiny: breakeven.exactTiny
+    }));
+    done.rows = tradeRows(rule, settled);
+    if (rule.interest) {
+      done.rateNote = "佣金、过户费、印花税与股票相同。融券利息按卖出金额 × 4.5% / 360 × 天数。没用融券就选股票。";
+    }
+    done.netFen = settled.netFen;
+    done.breakeven = breakeven;
+    done.buyQty = buyQty.value;
     return done;
   }
 
@@ -736,6 +1040,9 @@
     var rule = BY_ID[raw.kind] || BY_ID.stock;
     if (rule.mode === "repo") {
       return quoteRepo(rule, raw);
+    }
+    if (raw.side === "short") {
+      return quoteShort(rule, raw);
     }
     return quoteTrade(rule, raw);
   }

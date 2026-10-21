@@ -216,12 +216,23 @@ h1 {
   border-radius: 20px;
   box-shadow: var(--shadow);
   cursor: pointer;
+  transform: translateY(0);
+  transition:
+    transform 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.5s ease;
 }
 
 .tool-card:hover {
   transform: translateY(-3px);
   border-color: #e4d2f5;
   box-shadow: 0 18px 40px rgba(145, 71, 255, 0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-card {
+    transition: none;
+  }
 }
 
 .tool-icon {
@@ -313,6 +324,44 @@ h1 {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
+}
+
+.direction-wrap {
+  margin-top: 16px;
+}
+
+.direction-wrap[hidden] {
+  display: none;
+}
+
+.direction {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.direction .kind {
+  width: 100%;
+}
+
+#buy-block {
+  order: 1;
+}
+
+#sell-block {
+  order: 2;
+}
+
+#margin-field {
+  order: 3;
+}
+
+#trade-fields[data-side="short"] #buy-block {
+  order: 2;
+}
+
+#trade-fields[data-side="short"] #sell-block {
+  order: 1;
 }
 
 .kind {
@@ -546,6 +595,17 @@ h1 {
   letter-spacing: 0.08em;
 }
 
+.result-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.result-quote {
+  min-width: 0;
+}
+
 .result-value {
   margin: 8px 0 0;
   color: var(--ink);
@@ -556,6 +616,54 @@ h1 {
   line-height: 1.05;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
+}
+
+.result-move {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--blush);
+  line-height: 1.25;
+}
+
+.result-move[hidden] {
+  display: none;
+}
+
+.result-move-label {
+  color: var(--purple-ink);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.result-move-amount,
+.result-move-ratio {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-move-amount {
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.result-move-ratio {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.result-move[data-dir="up"] .result-move-amount,
+.result-move[data-dir="up"] .result-move-ratio {
+  color: #9d2348;
+}
+
+.result-move[data-dir="down"] .result-move-amount,
+.result-move[data-dir="down"] .result-move-ratio {
+  color: #0f6b3c;
 }
 
 .result-value[hidden] {
