@@ -405,7 +405,7 @@ img{
     width: 60px;
     padding: 0 0;
     line-height: 54px;
-    margin: 12px auto;
+    margin: 20px auto;
 }
 
 .header ul li.active a.logo {
@@ -415,7 +415,7 @@ img{
 .header ul li a {
 	position: relative;
 	color: #212121;
-	padding: 10px 18px 8px;
+	padding: 15px 21px 12px;
 
 	display:  block;
 	font-size:  14px;
@@ -431,7 +431,7 @@ img{
 	height: 50px;
 	width: 50px;
 	right: 10px;
-	top: 10px;
+	top: 15px;
 	transform: rotate(45deg);
 	transition:  .5s ease;
 }
