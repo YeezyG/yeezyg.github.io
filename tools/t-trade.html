@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>做T盈亏 · 工具箱 · 椰子糕</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="按写死的佣金、过户费和印花税，用买入价格和数量算保本卖出价，或用卖出价算做T盈亏。">
+  <link rel="shortcut icon" href="../images/favicon.png" type="image/x-icon">
+  <link rel="icon" href="../images/favicon.png" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css?family=Poppins:600,700|Work+Sans:400,500,600&display=swap" rel="stylesheet">
+  <link href="tools.css" rel="stylesheet">
+</head>
+<body>
+  <a class="skip-link" href="#calculator">跳到计算器</a>
+
+  <header class="site-header">
+    <a class="brand" href="../index.html">
+      <img src="../images/logo.png" alt="">
+      <span>椰子糕<small>YEEZYG</small></span>
+    </a>
+    <a class="back-link" href="index.html">返回工具箱</a>
+  </header>
+
+  <main class="page" id="calculator">
+    <p class="eyebrow">T TRADE</p>
+    <h1>做T盈亏</h1>
+    <p class="lede">手续费按账户写死。填买入价格和数量，算出保本卖出价，卖出数量按买入数量。再填卖出价，就知道扣完费用是赚是亏。</p>
+
+    <div class="calc-layout">
+      <form class="panel" id="calc-form" autocomplete="off">
+        <div class="kinds" role="radiogroup" aria-label="品种">
+          <button class="kind" type="button" role="radio" data-kind="stock" aria-checked="true">股票</button>
+          <button class="kind" type="button" role="radio" data-kind="etf" aria-checked="false">ETF</button>
+          <button class="kind" type="button" role="radio" data-kind="cb_sh" aria-checked="false">转债沪</button>
+          <button class="kind" type="button" role="radio" data-kind="cb_sz" aria-checked="false">转债深</button>
+          <button class="kind" type="button" role="radio" data-kind="bse" aria-checked="false">北交所</button>
+          <button class="kind" type="button" role="radio" data-kind="hk" aria-checked="false">港股通</button>
+          <button class="kind" type="button" role="radio" data-kind="margin" aria-checked="false">两融</button>
+          <button class="kind" type="button" role="radio" data-kind="repo" aria-checked="false">逆回购</button>
+        </div>
+        <p class="rate-note" id="rate-note"></p>
+
+        <fieldset class="fields" id="trade-fields">
+          <legend class="sr-only">买卖价格和数量</legend>
+          <p class="section-label">买点</p>
+          <div class="field-grid">
+            <div class="field">
+              <label for="buy-price">买入价格</label>
+              <div class="control">
+                <input id="buy-price" name="buyPrice" inputmode="decimal" placeholder="0.00" spellcheck="false">
+                <span class="suffix" data-price-unit>元</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="buy-qty">买入数量</label>
+              <div class="control">
+                <input id="buy-qty" name="buyQty" inputmode="numeric" placeholder="0" spellcheck="false">
+                <span class="suffix" data-qty-unit>股</span>
+              </div>
+            </div>
+          </div>
+
+          <p class="section-label">卖点</p>
+          <div class="field-grid">
+            <div class="field">
+              <label for="sell-price">卖出价格</label>
+              <div class="control">
+                <input id="sell-price" name="sellPrice" inputmode="decimal" placeholder="不填则只算保本价" spellcheck="false">
+                <span class="suffix" data-price-unit>元</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="sell-qty">卖出数量</label>
+              <div class="control">
+                <input id="sell-qty" name="sellQty" inputmode="numeric" placeholder="默认同买入" spellcheck="false">
+                <span class="suffix" data-qty-unit>股</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field" id="margin-field" hidden>
+            <label for="margin-days">计息天数</label>
+            <div class="control">
+              <input id="margin-days" name="marginDays" inputmode="numeric" value="1" spellcheck="false">
+              <span class="suffix">天</span>
+            </div>
+            <p class="hint">当天买进卖出，一般填 1。利息按买入金额的年化 4.5%，一年按 360 天。</p>
+          </div>
+        </fieldset>
+
+        <fieldset class="fields" id="repo-fields" hidden>
+          <legend class="sr-only">国债逆回购</legend>
+          <p class="section-label">逆回购</p>
+          <div class="field">
+            <label for="repo-amount">回购金额</label>
+            <div class="control">
+              <input id="repo-amount" name="amount" inputmode="decimal" placeholder="100000" spellcheck="false">
+              <span class="suffix">元</span>
+            </div>
+          </div>
+          <div class="field-grid">
+            <div class="field">
+              <label for="repo-rate">年化利率</label>
+              <div class="control">
+                <input id="repo-rate" name="rate" inputmode="decimal" placeholder="1.80" spellcheck="false">
+                <span class="suffix">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="repo-days">占款天数</label>
+              <div class="control">
+                <input id="repo-days" name="repoDays" inputmode="numeric" value="1" spellcheck="false">
+                <span class="suffix">天</span>
+              </div>
+            </div>
+          </div>
+          <p class="hint">占款天数要把周末和节假日算进去。佣金按金额收一次。</p>
+        </fieldset>
+
+        <div class="actions">
+          <button class="btn-ghost" type="button" id="fill-example">填入示例</button>
+          <button class="btn-ghost" type="button" id="clear-form">清空</button>
+        </div>
+
+        <details class="rates">
+          <summary>全部写死的费率</summary>
+          <table class="rate-table">
+            <thead>
+              <tr>
+                <th scope="col">品种</th>
+                <th scope="col">佣金</th>
+                <th scope="col">其他</th>
+              </tr>
+            </thead>
+            <tbody id="rate-table"></tbody>
+          </table>
+          <p class="fine">佣金、过户费、印花税都四舍五入到分。一笔委托收一次最低佣金，买入和卖出分开算。经手费和证管费没有再往佣金上加。股票、北交所、两融的印花税按现行卖出万5。港股通只算你给的佣金万1.2。</p>
+        </details>
+      </form>
+
+      <aside class="panel result-card" id="result" data-tone="muted" aria-live="polite">
+        <p class="result-kicker" id="hero-kicker">做T盈亏</p>
+        <p class="result-value" id="hero-value">—</p>
+        <p class="result-unit" id="hero-unit" hidden></p>
+        <p class="result-judge" id="hero-judge">先填买点</p>
+        <p class="result-sub" id="hero-sub"></p>
+        <p class="caption" id="caption" hidden></p>
+        <dl class="breakdown" id="breakdown"></dl>
+        <ul class="notes" id="notes"></ul>
+      </aside>
+    </div>
+    <noscript><p class="lede">这个计算器需要打开浏览器的 JavaScript。</p></noscript>
+  </main>
+
+  <footer class="site-footer">椰子糕 · 做T盈亏</footer>
+
+  <script src="t-trade.js"></script>
+  <script>
+    (function () {
+      var kind = "stock";
+      var form = document.getElementById("calc-form");
+      var resultCard = document.getElementById("result");
+      var kinds = Array.prototype.slice.call(document.querySelectorAll(".kind"));
+
+      function byId(id) {
+        return document.getElementById(id);
+      }
+
+      function ruleOf(id) {
+        return TTrade.KINDS.filter(function (item) {
+          return item.id === id;
+        })[0];
+      }
+
+      function currentInput() {
+        return {
+          kind: kind,
+          buyPrice: byId("buy-price").value,
+          buyQty: byId("buy-qty").value,
+          sellPrice: byId("sell-price").value,
+          sellQty: byId("sell-qty").value,
+          days: kind === "repo" ? byId("repo-days").value : byId("margin-days").value,
+          amount: byId("repo-amount").value,
+          rate: byId("repo-rate").value
+        };
+      }
+
+      function fillList(el, rows) {
+        el.replaceChildren();
+        rows.forEach(function (row) {
+          var wrap = document.createElement("div");
+          var dt = document.createElement("dt");
+          var dd = document.createElement("dd");
+          if (row.strong) {
+            wrap.className = "is-strong";
+          }
+          dt.textContent = row.label;
+          dd.textContent = row.value;
+          wrap.append(dt, dd);
+          el.append(wrap);
+        });
+      }
+
+      function fillNotes(notes) {
+        var list = byId("notes");
+        list.replaceChildren();
+        notes.forEach(function (text) {
+          var li = document.createElement("li");
+          li.textContent = text;
+          list.append(li);
+        });
+      }
+
+      function render(result) {
+        resultCard.dataset.tone = result.tone || "muted";
+        var heroValue = byId("hero-value");
+        byId("hero-kicker").textContent = result.kicker || "";
+        heroValue.textContent = result.value && result.value !== "—" ? result.value : "";
+        heroValue.hidden = !heroValue.textContent;
+        byId("hero-unit").textContent = result.unit || "";
+        byId("hero-unit").hidden = !result.unit || heroValue.hidden;
+        byId("hero-judge").textContent = result.judge || "";
+        byId("hero-sub").textContent = result.sub || "";
+        byId("hero-sub").hidden = !result.sub;
+        byId("caption").textContent = result.caption || "";
+        byId("caption").hidden = !result.caption;
+        byId("rate-note").textContent = result.rateNote || "";
+        fillList(byId("breakdown"), result.rows || []);
+        fillNotes(result.notes || []);
+      }
+
+      function update() {
+        render(TTrade.quote(currentInput()));
+      }
+
+      function syncUnits() {
+        var rule = ruleOf(kind);
+        document.querySelectorAll("[data-price-unit]").forEach(function (el) {
+          el.textContent = rule.currency;
+        });
+        document.querySelectorAll("[data-qty-unit]").forEach(function (el) {
+          el.textContent = rule.qtyUnit || "";
+        });
+      }
+
+      function setKind(next) {
+        if (!ruleOf(next)) {
+          return;
+        }
+        kind = next;
+        kinds.forEach(function (button) {
+          var on = button.getAttribute("data-kind") === kind;
+          button.setAttribute("aria-checked", on ? "true" : "false");
+        });
+        byId("trade-fields").hidden = kind === "repo";
+        byId("repo-fields").hidden = kind !== "repo";
+        byId("margin-field").hidden = kind !== "margin";
+        syncUnits();
+        update();
+      }
+
+      function fillExample() {
+        var sample = TTrade.example(kind);
+        if (kind === "repo") {
+          byId("repo-amount").value = sample.amount;
+          byId("repo-rate").value = sample.rate;
+          byId("repo-days").value = sample.days;
+        } else {
+          byId("buy-price").value = sample.buyPrice;
+          byId("buy-qty").value = sample.buyQty;
+          byId("sell-price").value = sample.sellPrice;
+          byId("sell-qty").value = sample.sellQty;
+          if (sample.days) {
+            byId("margin-days").value = sample.days;
+          }
+        }
+        update();
+      }
+
+      function clearForm() {
+        ["buy-price", "buy-qty", "sell-price", "sell-qty", "repo-amount", "repo-rate"].forEach(function (id) {
+          byId(id).value = "";
+        });
+        byId("margin-days").value = "1";
+        byId("repo-days").value = "1";
+        update();
+      }
+
+      function fillRateTable() {
+        var body = byId("rate-table");
+        TTrade.rateRows().forEach(function (row) {
+          var tr = document.createElement("tr");
+          [row.name, row.commission, row.extra].forEach(function (text) {
+            var td = document.createElement("td");
+            td.textContent = text;
+            tr.append(td);
+          });
+          body.append(tr);
+        });
+      }
+
+      kinds.forEach(function (button) {
+        button.addEventListener("click", function () {
+          setKind(button.getAttribute("data-kind"));
+        });
+      });
+
+      document.querySelector(".kinds").addEventListener("keydown", function (event) {
+        var keys = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"];
+        var index = keys.indexOf(event.key);
+        if (index === -1) {
+          return;
+        }
+        event.preventDefault();
+        var current = kinds.findIndex(function (button) {
+          return button.getAttribute("data-kind") === kind;
+        });
+        var step = index < 2 ? 1 : -1;
+        var next = kinds[(current + step + kinds.length) % kinds.length];
+        next.focus();
+        setKind(next.getAttribute("data-kind"));
+      });
+
+      form.addEventListener("input", update);
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+      });
+      byId("fill-example").addEventListener("click", fillExample);
+      byId("clear-form").addEventListener("click", clearForm);
+
+      fillRateTable();
+      var params = new URLSearchParams(window.location.search);
+      if (params.get("kind")) {
+        setKind(params.get("kind"));
+      } else {
+        setKind("stock");
+      }
+      if (params.get("example") === "1") {
+        fillExample();
+      }
+    })();
+  </script>
+</body>
+</html>

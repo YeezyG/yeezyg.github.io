@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>工具箱 · 椰子糕</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="椰子糕的工具箱。这些小工具还在准备，先放在这里。">
+  <meta name="description" content="椰子糕的工具箱。做T盈亏可以直接用，其余小工具还在准备。">
   <link rel="shortcut icon" href="../images/favicon.png" type="image/x-icon">
   <link rel="icon" href="../images/favicon.png" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,9 +26,19 @@
   <main class="page">
     <p class="eyebrow">TOOLS</p>
     <h1>工具箱</h1>
-    <p class="lede">这里会放一些自己用的小工具。下面这几项还只是占位，具体做哪些以后再定。</p>
+    <p class="lede">做T盈亏可以直接用。其余几项还只是占位。</p>
 
     <ul class="tool-grid" id="tools">
+      <li>
+        <a class="tool-card" href="t-trade.html">
+          <span class="tool-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4v3"/><path d="M8 14v6"/><rect x="5.5" y="7" width="5" height="7" rx="0.6"/><path d="M16 3v5"/><path d="M16 16v5"/><rect x="13.5" y="8" width="5" height="8" rx="0.6"/></svg>
+          </span>
+          <h2>做T盈亏</h2>
+          <p>填买点和卖点，按写死的费率算扣费后赚多少。</p>
+          <span class="badge badge-live">可用</span>
+        </a>
+      </li>
       <li>
         <button class="tool-card" type="button" data-tool="JSON 格式化">
           <span class="tool-icon" aria-hidden="true">
@@ -92,7 +102,7 @@
     </ul>
   </main>
 
-  <footer class="site-footer">椰子糕 · 工具还在准备</footer>
+  <footer class="site-footer">椰子糕 · 工具箱</footer>
 
   <div class="dialog" id="soon-dialog" hidden>
     <div class="dialog-backdrop" data-close></div>
@@ -129,7 +139,7 @@
 
       document.getElementById("tools").addEventListener("click", function (event) {
         var card = event.target.closest(".tool-card");
-        if (!card) {
+        if (!card || card.tagName === "A") {
           return;
         }
         openDialog(card.getAttribute("data-tool"));
