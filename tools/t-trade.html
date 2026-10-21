@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css?family=Poppins:500,600,700|Work+Sans:400,500,600&display=swap" rel="stylesheet">
-  <link href="tools.css?v=20261021b" rel="stylesheet">
+  <link href="tools.css?v=20261021c" rel="stylesheet">
 </head>
 <body>
   <a class="skip-link" href="#calculator">跳到计算器</a>
@@ -40,14 +40,13 @@
           <button class="kind" type="button" role="radio" data-kind="margin" aria-checked="false">两融</button>
           <button class="kind" type="button" role="radio" data-kind="repo" aria-checked="false">逆回购</button>
         </div>
-        <p class="rate-note" id="rate-note"></p>
 
         <div class="direction-wrap" id="direction-wrap">
-          <div class="direction" role="radiogroup" aria-label="方向">
+          <div class="direction" role="radiogroup" aria-label="方向" data-side="long">
+            <span class="direction-thumb" aria-hidden="true"></span>
             <button class="side" type="button" role="radio" data-side="long" aria-checked="true">做多</button>
             <button class="side" type="button" role="radio" data-side="short" aria-checked="false">做空</button>
           </div>
-          <p class="hint" id="side-hint">先买后卖。填买点，算出要卖到多少才保本。</p>
         </div>
 
         <fieldset class="fields" id="trade-fields" data-side="long">
@@ -261,7 +260,6 @@
         byId("hero-sub").hidden = !result.sub;
         byId("caption").textContent = result.caption || "";
         byId("caption").hidden = !result.caption;
-        byId("rate-note").textContent = result.rateNote || "";
         fillList(byId("breakdown"), result.rows || []);
         fillNotes(result.notes || []);
       }
@@ -308,9 +306,7 @@
           button.setAttribute("aria-checked", on ? "true" : "false");
         });
         byId("trade-fields").setAttribute("data-side", side);
-        byId("side-hint").textContent = short
-          ? "先卖后买。填卖点，算出要跌到多少买回才保本。"
-          : "先买后卖。填买点，算出要卖到多少才保本。";
+        document.querySelector(".direction").setAttribute("data-side", side);
         byId("buy-label").textContent = short ? "买回" : "买点";
         byId("buy-price-label").textContent = short ? "买回价格" : "买入价格";
         byId("buy-qty-label").textContent = short ? "买回数量" : "买入数量";

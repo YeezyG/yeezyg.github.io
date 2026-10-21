@@ -329,6 +329,7 @@ h1 {
 }
 
 .direction {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px;
@@ -338,7 +339,27 @@ h1 {
   border-radius: 999px;
 }
 
+.direction-thumb {
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 6px);
+  border-radius: 999px;
+  background: var(--purple);
+  box-shadow: 0 6px 16px rgba(145, 71, 255, 0.28);
+  pointer-events: none;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.direction[data-side="short"] .direction-thumb {
+  transform: translateX(calc(100% + 4px));
+}
+
 .side {
+  position: relative;
+  z-index: 1;
   width: 100%;
   min-width: 0;
   min-height: 44px;
@@ -352,18 +373,17 @@ h1 {
   font-weight: 600;
   letter-spacing: 0.04em;
   cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  transition: color 0.35s ease;
 }
 
 .side:hover {
-  background: #fff;
+  color: var(--purple-ink);
 }
 
 .side[aria-checked="true"],
 .side[aria-checked="true"]:hover {
-  background: var(--purple);
+  background: transparent;
   color: #fff;
-  box-shadow: 0 6px 16px rgba(145, 71, 255, 0.28);
 }
 
 .side:focus-visible {
@@ -421,13 +441,6 @@ h1 {
 .rates summary:focus-visible {
   outline: 3px solid var(--purple);
   outline-offset: 3px;
-}
-
-.rate-note {
-  margin: 14px 0 0;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.65;
 }
 
 .fields {
